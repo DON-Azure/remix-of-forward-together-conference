@@ -31,39 +31,58 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
     }
   }, [isPersonalized, recipient]);
 
-  // For XMPie write ADORs to work, we need native form submission
-  // The form will POST directly to the XMPie server which processes the xmp-text attributes
-  const handleSubmit = (e: React.FormEvent) => {
-    // Don't prevent default - let the form submit natively to XMPie
-    // XMPie will process the xmp-text attributes and write to database
-    
+  // Handle form submission
+  // XMPie's XMPL library (if loaded) will intercept form data via xmp-text attributes
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent native POST (causes 405 without XMPie server)
     setIsSubmitting(true);
 
-    // Log for debugging
-    console.log('[XMPie] Form submitting with values:', {
-      name: formData.name,
-      email: formData.email,
-      businessMeeting: formData.businessMeeting,
-      galaEvening: formData.galaEvening,
-      accommodation: formData.accommodation,
-    });
+    const submissionData = {
+      FullName: formData.name,
+      Email: formData.email,
+      BusinessMeeting: formData.businessMeeting,
+      GalaEvening: formData.galaEvening,
+      Accommodation: formData.accommodation,
+    };
 
-    // Update XMPie data layer for tracking
+    // Log for debugging
+    console.log('[XMPie] Form data:', submissionData);
+
+    // Check if XMPie's XMPL library is available
+    const xmpl = (window as any).xmpl || (window as any).XMPL;
+    
+    if (xmpl && typeof xmpl.updateRecipient === 'function') {
+      // XMPie XMPL library is loaded - use it to write data
+      try {
+        await xmpl.updateRecipient(submissionData);
+        console.log('[XMPie] Data written via XMPL library');
+      } catch (error) {
+        console.error('[XMPie] XMPL update error:', error);
+      }
+    } else if (xmpl && typeof xmpl.save === 'function') {
+      // Alternative XMPL method
+      try {
+        await xmpl.save();
+        console.log('[XMPie] Data saved via XMPL library');
+      } catch (error) {
+        console.error('[XMPie] XMPL save error:', error);
+      }
+    } else {
+      // XMPL library not found - log for debugging
+      console.warn('[XMPie] XMPL library not detected. Make sure xmpl.js is loaded on the page.');
+      console.log('[XMPie] Available window.xmpl:', xmpl);
+    }
+
+    // Update data layer for tracking
     if ((window as any).xmpieDataLayer) {
       (window as any).xmpieDataLayer.formSubmission = {
-        recipientId: tracking?.recipientId || '',
-        purlCode: tracking?.purlCode || '',
-        name: formData.name,
-        email: formData.email,
-        businessMeeting: formData.businessMeeting,
-        galaEvening: formData.galaEvening,
-        accommodation: formData.accommodation,
+        ...submissionData,
         submittedAt: new Date().toISOString(),
       };
     }
 
-    // Native form submission will handle the rest
-    // XMPie server processes xmp-text attributes automatically
+    setIsSubmitting(false);
+    setIsSubmitted(true);
   };
 
   if (isSubmitted) {
@@ -110,7 +129,6 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
 
           <form 
             onSubmit={handleSubmit}
-            method="POST"
             className="bg-card rounded-2xl p-8 md:p-10 shadow-elevated border border-border"
             data-xmpie-form="rsvp"
           >

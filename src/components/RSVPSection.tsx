@@ -14,9 +14,9 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    businessMeeting: false,
-    galaEvening: false,
-    accommodation: false,
+    businessMeeting: "N" as "Y" | "N",
+    galaEvening: "N" as "Y" | "N",
+    accommodation: "N" as "Y" | "N",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,9 +42,9 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
       purlCode: tracking?.purlCode || '',
       name: formData.name,
       email: formData.email,
-      businessMeeting: formData.businessMeeting,
-      galaEvening: formData.galaEvening,
-      accommodation: formData.accommodation,
+      businessMeeting: formData.businessMeeting === "Y",
+      galaEvening: formData.galaEvening === "Y",
+      accommodation: formData.accommodation === "Y",
       submittedAt: new Date().toISOString(),
     };
 
@@ -190,13 +190,13 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                   <input
                     type="checkbox"
                     name="businessMeeting"
-                    checked={formData.businessMeeting}
-                    onChange={(e) => setFormData({ ...formData, businessMeeting: e.target.checked })}
+                    checked={formData.businessMeeting === "Y"}
+                    onChange={(e) => setFormData({ ...formData, businessMeeting: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.BusinessMeeting"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
-                    {formData.businessMeeting && <Check className="w-4 h-4 text-primary-foreground" />}
+                    {formData.businessMeeting === "Y" && <Check className="w-4 h-4 text-primary-foreground" />}
                   </div>
                 </div>
                 <div>
@@ -210,13 +210,13 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                   <input
                     type="checkbox"
                     name="galaEvening"
-                    checked={formData.galaEvening}
-                    onChange={(e) => setFormData({ ...formData, galaEvening: e.target.checked })}
+                    checked={formData.galaEvening === "Y"}
+                    onChange={(e) => setFormData({ ...formData, galaEvening: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.GalaEvening"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-gold peer-checked:border-gold transition-all flex items-center justify-center">
-                    {formData.galaEvening && <Check className="w-4 h-4 text-navy" />}
+                    {formData.galaEvening === "Y" && <Check className="w-4 h-4 text-navy" />}
                   </div>
                 </div>
                 <div>
@@ -230,13 +230,13 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                   <input
                     type="checkbox"
                     name="accommodation"
-                    checked={formData.accommodation}
-                    onChange={(e) => setFormData({ ...formData, accommodation: e.target.checked })}
+                    checked={formData.accommodation === "Y"}
+                    onChange={(e) => setFormData({ ...formData, accommodation: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.Accommodation"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
-                    {formData.accommodation && <Check className="w-4 h-4 text-primary-foreground" />}
+                    {formData.accommodation === "Y" && <Check className="w-4 h-4 text-primary-foreground" />}
                   </div>
                 </div>
                 <div>

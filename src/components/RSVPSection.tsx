@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Check, Send, User, Mail } from "lucide-react";
 import { useXMPieData } from "@/hooks/useXMPieData";
-import { XMPieFormSubmission } from "@/types/xmpie";
 
 interface RSVPSectionProps {
   // Optional XMPie webhook URL for form submission
@@ -32,58 +31,39 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
     }
   }, [isPersonalized, recipient]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // For XMPie write ADORs to work, we need native form submission
+  // The form will POST directly to the XMPie server which processes the xmp-text attributes
+  const handleSubmit = (e: React.FormEvent) => {
+    // Don't prevent default - let the form submit natively to XMPie
+    // XMPie will process the xmp-text attributes and write to database
+    
     setIsSubmitting(true);
 
-    // Prepare XMPie-compatible form submission data
-    const submissionData: XMPieFormSubmission = {
-      recipientId: tracking?.recipientId || '',
-      purlCode: tracking?.purlCode || '',
+    // Log for debugging
+    console.log('[XMPie] Form submitting with values:', {
       name: formData.name,
       email: formData.email,
-      businessMeeting: formData.businessMeeting === "Y",
-      galaEvening: formData.galaEvening === "Y",
-      accommodation: formData.accommodation === "Y",
-      submittedAt: new Date().toISOString(),
-    };
+      businessMeeting: formData.businessMeeting,
+      galaEvening: formData.galaEvening,
+      accommodation: formData.accommodation,
+    });
 
-    // Update XMPie data layer
+    // Update XMPie data layer for tracking
     if ((window as any).xmpieDataLayer) {
-      (window as any).xmpieDataLayer.formSubmission = submissionData;
-      (window as any).xmpieDataLayer.tracking = {
-        ...tracking,
-        formSubmissions: (tracking?.formSubmissions || 0) + 1,
+      (window as any).xmpieDataLayer.formSubmission = {
+        recipientId: tracking?.recipientId || '',
+        purlCode: tracking?.purlCode || '',
+        name: formData.name,
+        email: formData.email,
+        businessMeeting: formData.businessMeeting,
+        galaEvening: formData.galaEvening,
+        accommodation: formData.accommodation,
+        submittedAt: new Date().toISOString(),
       };
     }
 
-    // Send to XMPie webhook if configured
-    if (xmpieWebhookUrl) {
-      try {
-        await fetch(xmpieWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          mode: 'no-cors', // XMPie endpoints may not support CORS
-          body: JSON.stringify({
-            ...submissionData,
-            // XMPie-specific tracking fields
-            _xmpie_recipient_id: tracking?.recipientId,
-            _xmpie_campaign_id: tracking?.campaignId,
-            _xmpie_purl_code: tracking?.purlCode,
-            _xmpie_timestamp: new Date().toISOString(),
-          }),
-        });
-        console.log('[XMPie] Form submission sent to webhook');
-      } catch (error) {
-        console.error('[XMPie] Webhook submission error:', error);
-      }
-    }
-
-    // Log for XMPie integration debugging
-    console.log('[XMPie] Form submitted:', submissionData);
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    // Native form submission will handle the rest
+    // XMPie server processes xmp-text attributes automatically
   };
 
   if (isSubmitted) {
@@ -129,7 +109,8 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
           </div>
 
           <form 
-            onSubmit={handleSubmit} 
+            onSubmit={handleSubmit}
+            method="POST"
             className="bg-card rounded-2xl p-8 md:p-10 shadow-elevated border border-border"
             data-xmpie-form="rsvp"
           >
@@ -149,7 +130,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                   <input
                     type="text"
                     id="name"
-                    name="name"
+                    name="FullName"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -169,7 +150,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                   <input
                     type="email"
                     id="email"
-                    name="email"
+                    name="Email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -189,12 +170,15 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                 <div className="relative mt-0.5">
                   <input
                     type="checkbox"
-                    name="businessMeeting"
+                    name="BusinessMeeting"
+                    value="Y"
                     checked={formData.businessMeeting === "Y"}
                     onChange={(e) => setFormData({ ...formData, businessMeeting: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.BusinessMeeting"
                   />
+                  {/* Hidden input to send "N" when unchecked */}
+                  <input type="hidden" name="BusinessMeeting" value={formData.businessMeeting} xmp-text="xmp.r.BusinessMeeting" />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
                     {formData.businessMeeting === "Y" && <Check className="w-4 h-4 text-primary-foreground" />}
                   </div>
@@ -209,12 +193,15 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                 <div className="relative mt-0.5">
                   <input
                     type="checkbox"
-                    name="galaEvening"
+                    name="GalaEvening"
+                    value="Y"
                     checked={formData.galaEvening === "Y"}
                     onChange={(e) => setFormData({ ...formData, galaEvening: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.GalaEvening"
                   />
+                  {/* Hidden input to send "N" when unchecked */}
+                  <input type="hidden" name="GalaEvening" value={formData.galaEvening} xmp-text="xmp.r.GalaEvening" />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-gold peer-checked:border-gold transition-all flex items-center justify-center">
                     {formData.galaEvening === "Y" && <Check className="w-4 h-4 text-navy" />}
                   </div>
@@ -229,12 +216,15 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                 <div className="relative mt-0.5">
                   <input
                     type="checkbox"
-                    name="accommodation"
+                    name="Accommodation"
+                    value="Y"
                     checked={formData.accommodation === "Y"}
                     onChange={(e) => setFormData({ ...formData, accommodation: e.target.checked ? "Y" : "N" })}
                     className="sr-only peer"
                     xmp-text="xmp.r.Accommodation"
                   />
+                  {/* Hidden input to send "N" when unchecked */}
+                  <input type="hidden" name="Accommodation" value={formData.accommodation} xmp-text="xmp.r.Accommodation" />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
                     {formData.accommodation === "Y" && <Check className="w-4 h-4 text-primary-foreground" />}
                   </div>

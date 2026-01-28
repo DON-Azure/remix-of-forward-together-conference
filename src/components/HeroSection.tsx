@@ -1,8 +1,15 @@
 import { Sparkles, MapPin, Calendar } from "lucide-react";
+import XMPieVariable from "@/components/xmpie/XMPieVariable";
+import { useXMPieData } from "@/hooks/useXMPieData";
 
 const HeroSection = () => {
+  const { isPersonalized } = useXMPieData();
+
   return (
-    <section className="relative min-h-screen bg-hero flex items-center justify-center overflow-hidden">
+    <section 
+      className="relative min-h-screen bg-hero flex items-center justify-center overflow-hidden"
+      data-xmpie-section="hero"
+    >
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gold/10 rounded-full blur-3xl" />
@@ -12,10 +19,24 @@ const HeroSection = () => {
       </div>
 
       <div className="container relative z-10 px-6 py-20 text-center">
+        {/* Personalized greeting */}
         <div className="animate-fade-up" style={{ animationDelay: "0.1s", opacity: 0 }}>
-          <p className="text-gold-light uppercase tracking-[0.3em] text-sm font-medium mb-6">
+          <p className="text-gold-light uppercase tracking-[0.3em] text-sm font-medium mb-2">
             You're Invited
           </p>
+          {isPersonalized && (
+            <p className="text-primary-foreground/80 text-lg mb-6" data-xmpie-personalized="greeting">
+              Dear <XMPieVariable field="firstName" className="font-semibold text-gold" />,
+            </p>
+          )}
+          {!isPersonalized && (
+            <p className="text-primary-foreground/60 text-sm mb-6">
+              {/* XMPie ADOR placeholder for print templates */}
+              <span data-xmpie-ador="@@ADOR.FirstName@@" className="hidden print:inline">
+                Dear @@ADOR.FirstName@@,
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="animate-fade-up" style={{ animationDelay: "0.2s", opacity: 0 }}>

@@ -1,25 +1,60 @@
 import { Sparkles, MapPin, Calendar, Utensils, Clock, Shirt, Wine, Hotel, QrCode } from "lucide-react";
+import { XMPIE_PLACEHOLDERS } from "@/types/xmpie";
 
+// Print-ready postcard with XMPie ADOR placeholders for variable data printing
 const Postcard = () => {
   return (
-    <div className="min-h-screen bg-muted p-8 print:p-0 print:bg-white">
+    <div className="min-h-screen bg-muted p-8 print:p-0 print:bg-white" data-xmpie-template="postcard">
       <div className="max-w-4xl mx-auto space-y-8 print:space-y-0">
         {/* Print Instructions - Hidden when printing */}
         <div className="bg-card rounded-xl p-6 shadow-soft border border-border print:hidden">
-          <h1 className="font-heading text-2xl text-foreground mb-2">A5 Postcard Preview</h1>
+          <h1 className="font-heading text-2xl text-foreground mb-2">A5 Postcard Preview (XMPie Ready)</h1>
           <p className="text-muted-foreground mb-4">
-            Print this page at A5 size (148mm × 210mm) for best results. Use "Fit to page" in your print settings.
+            This template includes XMPie ADOR placeholders for variable data printing. 
+            Export the HTML to use with XMPie PersonalEffect or uProduce.
           </p>
-          <button 
-            onClick={() => window.print()} 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-navy-light transition-colors"
-          >
-            Print Postcard
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={() => window.print()} 
+              className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-navy-light transition-colors"
+            >
+              Print Postcard
+            </button>
+            <button 
+              onClick={() => {
+                const html = document.documentElement.outerHTML;
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'postcard-xmpie-template.html';
+                a.click();
+              }} 
+              className="bg-secondary text-foreground px-6 py-2 rounded-lg font-medium hover:bg-muted transition-colors border border-border"
+            >
+              Export HTML for XMPie
+            </button>
+          </div>
+          
+          {/* XMPie Variable Reference */}
+          <div className="mt-6 p-4 bg-secondary rounded-lg">
+            <h3 className="font-medium text-foreground mb-2">XMPie ADOR Variables Used:</h3>
+            <ul className="text-sm text-muted-foreground space-y-1 font-mono">
+              <li>• {XMPIE_PLACEHOLDERS.FIRST_NAME} - Recipient's first name</li>
+              <li>• {XMPIE_PLACEHOLDERS.LAST_NAME} - Recipient's last name</li>
+              <li>• {XMPIE_PLACEHOLDERS.FULL_NAME} - Recipient's full name</li>
+              <li>• {XMPIE_PLACEHOLDERS.EMAIL} - Recipient's email</li>
+              <li>• {XMPIE_PLACEHOLDERS.RECIPIENT_ID} - Unique recipient ID</li>
+              <li>• {XMPIE_PLACEHOLDERS.PURL_CODE} - Personal URL code</li>
+            </ul>
+          </div>
         </div>
 
         {/* Front of Postcard */}
-        <div className="postcard-page bg-hero aspect-[1.414/1] rounded-xl print:rounded-none overflow-hidden relative flex flex-col items-center justify-center text-center p-8 shadow-elevated print:shadow-none print:break-after-page">
+        <div 
+          className="postcard-page bg-hero aspect-[1.414/1] rounded-xl print:rounded-none overflow-hidden relative flex flex-col items-center justify-center text-center p-8 shadow-elevated print:shadow-none print:break-after-page"
+          data-xmpie-side="front"
+        >
           {/* Decorative elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-10 left-5 w-48 h-48 bg-gold/10 rounded-full blur-3xl" />
@@ -72,7 +107,10 @@ const Postcard = () => {
         </div>
 
         {/* Back of Postcard */}
-        <div className="postcard-page bg-cream aspect-[1.414/1] rounded-xl print:rounded-none overflow-hidden relative p-8 shadow-elevated print:shadow-none">
+        <div 
+          className="postcard-page bg-cream aspect-[1.414/1] rounded-xl print:rounded-none overflow-hidden relative p-8 shadow-elevated print:shadow-none"
+          data-xmpie-side="back"
+        >
           {/* Subtle background pattern */}
           <div className="absolute inset-0 opacity-5">
             <div className="absolute top-0 right-0 w-48 h-48 bg-navy rounded-full blur-3xl" />
@@ -80,10 +118,12 @@ const Postcard = () => {
           </div>
 
           <div className="relative z-10 h-full flex flex-col">
-            {/* Header */}
+            {/* Header with XMPie Variable */}
             <div className="text-center mb-6">
               <p className="text-gold uppercase tracking-[0.2em] text-xs font-medium mb-1">You're Invited</p>
-              <h2 className="font-heading text-xl text-navy font-semibold">Dear _____________</h2>
+              <h2 className="font-heading text-xl text-navy font-semibold">
+                Dear <span data-xmpie-ador={XMPIE_PLACEHOLDERS.FIRST_NAME} className="text-gold">{XMPIE_PLACEHOLDERS.FIRST_NAME}</span>
+              </h2>
             </div>
 
             {/* Two Column Layout */}
@@ -148,21 +188,31 @@ const Postcard = () => {
                 </div>
               </div>
 
-              {/* Right Column - RSVP */}
+              {/* Right Column - RSVP with PURL */}
               <div className="flex flex-col">
                 <div className="bg-white/60 rounded-lg p-4 border border-border flex-1">
                   <h3 className="font-heading text-sm font-semibold text-navy mb-3 text-center">
                     Please Confirm Your Attendance
                   </h3>
                   
-                  {/* QR Code Placeholder */}
-                  <div className="w-24 h-24 mx-auto bg-white border-2 border-navy/20 rounded-lg flex items-center justify-center mb-3">
+                  {/* QR Code Placeholder - XMPie will replace with personalized QR */}
+                  <div 
+                    className="w-24 h-24 mx-auto bg-white border-2 border-navy/20 rounded-lg flex items-center justify-center mb-3"
+                    data-xmpie-qr="purl"
+                    data-xmpie-ador="@@ADOR.QRCode@@"
+                  >
                     <QrCode className="w-16 h-16 text-navy/30" />
                   </div>
                   
                   <p className="text-[10px] text-center text-muted-foreground mb-4">
                     Scan QR code or visit:<br />
-                    <span className="font-medium text-navy">[landing page URL]</span>
+                    <span 
+                      className="font-medium text-navy"
+                      data-xmpie-purl="url"
+                      data-xmpie-ador="@@ADOR.PURL@@"
+                    >
+                      yoursite.com/<span data-xmpie-ador={XMPIE_PLACEHOLDERS.PURL_CODE}>{XMPIE_PLACEHOLDERS.PURL_CODE}</span>
+                    </span>
                   </p>
 
                   <div className="space-y-2 text-xs">
@@ -188,6 +238,12 @@ const Postcard = () => {
                   </p>
                 </div>
               </div>
+            </div>
+            
+            {/* Hidden XMPie tracking data */}
+            <div className="hidden" data-xmpie-tracking="print">
+              <span data-xmpie-ador={XMPIE_PLACEHOLDERS.RECIPIENT_ID}>{XMPIE_PLACEHOLDERS.RECIPIENT_ID}</span>
+              <span data-xmpie-ador={XMPIE_PLACEHOLDERS.EMAIL}>{XMPIE_PLACEHOLDERS.EMAIL}</span>
             </div>
           </div>
         </div>

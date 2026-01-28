@@ -32,51 +32,72 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
   }, [isPersonalized, recipient]);
 
   // Handle form submission
-  // XMPie's XMPL library (if loaded) will intercept form data via xmp-text attributes
+  // XMPie's XMPL library uses xmp.r object for recipient data and xmp.r.save() to write back
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent native POST (causes 405 without XMPie server)
+    e.preventDefault(); // Prevent native POST
     setIsSubmitting(true);
 
-    const submissionData = {
+    // Log for debugging
+    console.log('[XMPie] Form submission started');
+    console.log('[XMPie] Form data:', {
       FullName: formData.name,
       Email: formData.email,
       BusinessMeeting: formData.businessMeeting,
       GalaEvening: formData.galaEvening,
       Accommodation: formData.accommodation,
-    };
+    });
 
-    // Log for debugging
-    console.log('[XMPie] Form data:', submissionData);
-
-    // Check if XMPie's XMPL library is available
-    const xmpl = (window as any).xmpl || (window as any).XMPL;
+    // Check for XMPL library - it typically exposes 'xmp' global object
+    const xmp = (window as any).xmp;
+    console.log('[XMPie] window.xmp object:', xmp);
     
-    if (xmpl && typeof xmpl.updateRecipient === 'function') {
-      // XMPie XMPL library is loaded - use it to write data
+    if (xmp && xmp.r) {
+      // XMPL v5 pattern: Set values on xmp.r object then call save()
       try {
-        await xmpl.updateRecipient(submissionData);
-        console.log('[XMPie] Data written via XMPL library');
+        console.log('[XMPie] Setting recipient data on xmp.r...');
+        
+        // Set the values directly on the recipient object
+        xmp.r.FullName = formData.name;
+        xmp.r.Email = formData.email;
+        xmp.r.BusinessMeeting = formData.businessMeeting;
+        xmp.r.GalaEvening = formData.galaEvening;
+        xmp.r.Accommodation = formData.accommodation;
+        
+        console.log('[XMPie] xmp.r after setting:', xmp.r);
+        
+        // Call save to persist the data
+        if (typeof xmp.r.save === 'function') {
+          console.log('[XMPie] Calling xmp.r.save()...');
+          await xmp.r.save();
+          console.log('[XMPie] Data saved successfully via xmp.r.save()');
+        } else if (typeof xmp.save === 'function') {
+          console.log('[XMPie] Calling xmp.save()...');
+          await xmp.save();
+          console.log('[XMPie] Data saved successfully via xmp.save()');
+        } else {
+          console.warn('[XMPie] No save() method found on xmp or xmp.r');
+          console.log('[XMPie] Available xmp methods:', Object.keys(xmp));
+          console.log('[XMPie] Available xmp.r methods:', xmp.r ? Object.keys(xmp.r) : 'N/A');
+        }
       } catch (error) {
-        console.error('[XMPie] XMPL update error:', error);
-      }
-    } else if (xmpl && typeof xmpl.save === 'function') {
-      // Alternative XMPL method
-      try {
-        await xmpl.save();
-        console.log('[XMPie] Data saved via XMPL library');
-      } catch (error) {
-        console.error('[XMPie] XMPL save error:', error);
+        console.error('[XMPie] Error saving data:', error);
       }
     } else {
-      // XMPL library not found - log for debugging
-      console.warn('[XMPie] XMPL library not detected. Make sure xmpl.js is loaded on the page.');
-      console.log('[XMPie] Available window.xmpl:', xmpl);
+      // XMPL library not found - log available globals for debugging
+      console.warn('[XMPie] XMPL library not detected or xmp.r not available');
+      console.log('[XMPie] window.xmp:', xmp);
+      console.log('[XMPie] window.XMPL:', (window as any).XMPL);
+      console.log('[XMPie] window.xmpl:', (window as any).xmpl);
     }
 
     // Update data layer for tracking
     if ((window as any).xmpieDataLayer) {
       (window as any).xmpieDataLayer.formSubmission = {
-        ...submissionData,
+        FullName: formData.name,
+        Email: formData.email,
+        BusinessMeeting: formData.businessMeeting,
+        GalaEvening: formData.galaEvening,
+        Accommodation: formData.accommodation,
         submittedAt: new Date().toISOString(),
       };
     }

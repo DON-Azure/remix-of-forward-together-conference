@@ -155,8 +155,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full pl-12 pr-4 py-3 bg-secondary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
                     placeholder="Enter your full name"
-                    data-xmpie-field="name"
-                    data-xmpie-prefill={isPersonalized ? 'true' : 'false'}
+                    xmp-text="xmp.r.FullName"
                   />
                 </div>
               </div>
@@ -176,8 +175,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full pl-12 pr-4 py-3 bg-secondary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
                     placeholder="Enter your email"
-                    data-xmpie-field="email"
-                    data-xmpie-prefill={isPersonalized ? 'true' : 'false'}
+                    xmp-text="xmp.r.Email"
                   />
                 </div>
               </div>
@@ -195,7 +193,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                     checked={formData.businessMeeting}
                     onChange={(e) => setFormData({ ...formData, businessMeeting: e.target.checked })}
                     className="sr-only peer"
-                    data-xmpie-field="businessMeeting"
+                    xmp-text="xmp.r.BusinessMeeting"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
                     {formData.businessMeeting && <Check className="w-4 h-4 text-primary-foreground" />}
@@ -215,7 +213,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                     checked={formData.galaEvening}
                     onChange={(e) => setFormData({ ...formData, galaEvening: e.target.checked })}
                     className="sr-only peer"
-                    data-xmpie-field="galaEvening"
+                    xmp-text="xmp.r.GalaEvening"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-gold peer-checked:border-gold transition-all flex items-center justify-center">
                     {formData.galaEvening && <Check className="w-4 h-4 text-navy" />}
@@ -235,7 +233,7 @@ const RSVPSection = ({ xmpieWebhookUrl }: RSVPSectionProps) => {
                     checked={formData.accommodation}
                     onChange={(e) => setFormData({ ...formData, accommodation: e.target.checked })}
                     className="sr-only peer"
-                    data-xmpie-field="accommodation"
+                    xmp-text="xmp.r.Accommodation"
                   />
                   <div className="w-6 h-6 border-2 border-border rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
                     {formData.accommodation && <Check className="w-4 h-4 text-primary-foreground" />}
